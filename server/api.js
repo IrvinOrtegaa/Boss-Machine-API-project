@@ -20,7 +20,7 @@ apiRouter.get('/minions', (req, res, next) => {
 apiRouter.get('/minions/:minionId', (req, res, next) => {
     const id = req.params.minionId;
     const minion = getFromDatabaseById('minions', id);
-    if (minion === null) {
+    if (minion === undefined) {
         return res.status(404).send();
     } else {
         res.status(200).send(minion);
@@ -34,10 +34,10 @@ apiRouter.post('/minions', (req, res, next) => {
         name: name,
         title: title,
         weaknesses: weaknesses,
-        salary: parseFloat(salary.replace(/,/g, ''))
+        salary: Number(salary)
     }
 
-    if (!name || !title || !weaknesses || !salary) {
+    if (!name) {
         return res.status(400).send();
     } else {
         console.log(newMinion);
@@ -57,14 +57,22 @@ apiRouter.put('/minions/:minionId', (req, res, next) => {
         weaknesses: weaknesses,
         salary: Number(salary)
     }
+    const minionIndex = getFromDatabaseById('minions', id);
+    if (minionIndex === undefined) {
+        return res.status(404).send('Not Found');
+    }
     updateInstanceInDatabase('minions', updatedMinion);
     res.status(200).send(updatedMinion);
 })
 
 apiRouter.delete('/minions/:minionId', (req, res, next) => {
     const deleteId = req.params.minionId;
+    const minionIndex = getFromDatabaseById('minions', deleteId);
+    if (minionIndex === undefined) {
+        return res.status(404).send('Not Found');
+    }
     deleteFromDatabasebyId('minions', deleteId);
-    res.status(200).send();
+    res.status(204).send('No Content');
 })
 
 apiRouter.get('/ideas', (req, res, next) => {
@@ -75,7 +83,7 @@ apiRouter.get('/ideas', (req, res, next) => {
 apiRouter.get('/ideas/:ideaId', (req, res, next) => {
     const id = req.params.ideaId;
     const idea = getFromDatabaseById('ideas', id);
-    if (idea === null) {
+    if (idea === undefined) {
         return res.status(404).send();
     } else {
         res.status(200).send(idea);
@@ -88,11 +96,11 @@ apiRouter.post('/ideas', (req, res, next) => {
     const newIdea = {
         name: name,
         description: description,
-        numWeeks: parseFloat(numWeeks.replace(/,/g, '')),
-        weeklyRevenue: parseFloat(weeklyRevenue.replace(/,/g, ''))
+        numWeeks: Number(numWeeks),
+        weeklyRevenue: Number(weeklyRevenue)
     }
 
-    if (!name || !description || !numWeeks || !weeklyRevenue) {
+    if (!name || !numWeeks || !weeklyRevenue) {
         return res.status(400).send();
     } else {
         console.log(newIdea);
@@ -103,13 +111,17 @@ apiRouter.post('/ideas', (req, res, next) => {
 })
 
 apiRouter.put('/ideas/:ideaId', (req, res, next) => {
-    const { id, name, description, numWeeks, weeklyRevenue } = req.body;
+    const { name, description, numWeeks, weeklyRevenue } = req.body;
     const updatedIdea = {
-        id: id,
-        name: name,
         description: description,
+        id: req.params.ideaId,
+        name: name,
         numWeeks: Number(numWeeks),
         weeklyRevenue: Number(weeklyRevenue)
+    }
+    const ideaIndex = getFromDatabaseById('ideas', req.params.ideaId);
+    if (ideaIndex === undefined) {
+        return res.status(404).send('Not Found');
     }
     updateInstanceInDatabase('ideas', updatedIdea);
     res.status(200).send(updatedIdea);
@@ -117,8 +129,13 @@ apiRouter.put('/ideas/:ideaId', (req, res, next) => {
 
 apiRouter.delete('/ideas/:ideaId', (req, res, next) => {
     const deleteId = req.params.ideaId;
+    const deleteIdea = getFromDatabaseById('ideas', deleteId);
+    if (deleteIdea === undefined) {
+        return res.status(404).send('Not Found');
+    } else {
     deleteFromDatabasebyId('ideas', deleteId);
-    res.status(200).send();
+    res.status(204).send();
+    }
 })
 
 apiRouter.get('/meetings', (req, res, next) => {
@@ -134,7 +151,7 @@ apiRouter.post('/meetings', (req, res, next) => {
 
 apiRouter.delete('/meetings', (req, res, next) => {
     deleteAllFromDatabase('meetings');
-    res.status(200).send();
+    res.status(204).send('No Content');
 })
 
 
