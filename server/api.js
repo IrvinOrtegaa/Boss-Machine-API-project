@@ -8,6 +8,7 @@ const {
     updateInstanceInDatabase,
     deleteFromDatabasebyId,
     deleteAllFromDatabase,
+    isValidMinion
 } = require('./db');
 
 apiRouter.get('/minions', (req, res, next) => {
@@ -47,6 +48,25 @@ apiRouter.post('/minions', (req, res, next) => {
     
 })
 
+apiRouter.put('/minions/:minionId', (req, res, next) => {
+    const { id, name, title, weaknesses, salary } = req.body;
+    const updatedMinion = {
+        id: id,
+        name: name,
+        title: title,
+        weaknesses: weaknesses,
+        salary: Number(salary)
+    }
+    updateInstanceInDatabase('minions', updatedMinion);
+    res.status(200).send(updatedMinion);
+})
+
+apiRouter.delete('/minions/:minionId', (req, res, next) => {
+    const deleteId = req.params.minionId;
+    deleteFromDatabasebyId('minions', deleteId);
+    res.status(200).send();
+})
+
 apiRouter.get('/ideas', (req, res, next) => {
     const ideas = getAllFromDatabase('ideas');
     res.status(200).send(ideas);
@@ -63,11 +83,59 @@ apiRouter.get('/ideas/:ideaId', (req, res, next) => {
     }
 })
 
+apiRouter.post('/ideas', (req, res, next) => {
+    const { name, description, numWeeks, weeklyRevenue } = req.body;
+    const newIdea = {
+        name: name,
+        description: description,
+        numWeeks: parseFloat(numWeeks.replace(/,/g, '')),
+        weeklyRevenue: parseFloat(weeklyRevenue.replace(/,/g, ''))
+    }
+
+    if (!name || !description || !numWeeks || !weeklyRevenue) {
+        return res.status(400).send();
+    } else {
+        console.log(newIdea);
+        addToDatabase('ideas', newIdea);
+        res.status(201).send(newIdea);
+        next();
+    }  
+})
+
+apiRouter.put('/ideas/:ideaId', (req, res, next) => {
+    const { id, name, description, numWeeks, weeklyRevenue } = req.body;
+    const updatedIdea = {
+        id: id,
+        name: name,
+        description: description,
+        numWeeks: Number(numWeeks),
+        weeklyRevenue: Number(weeklyRevenue)
+    }
+    updateInstanceInDatabase('ideas', updatedIdea);
+    res.status(200).send(updatedIdea);
+})
+
+apiRouter.delete('/ideas/:ideaId', (req, res, next) => {
+    const deleteId = req.params.ideaId;
+    deleteFromDatabasebyId('ideas', deleteId);
+    res.status(200).send();
+})
+
 apiRouter.get('/meetings', (req, res, next) => {
     const meetings = getAllFromDatabase('meetings');
     res.status(200).send(meetings);
 })
 
+apiRouter.post('/meetings', (req, res, next) => {
+    const newMeeting = createMeeting();
+    addToDatabase('meetings', newMeeting);
+    res.status(201).send(newMeeting);
+});
+
+apiRouter.delete('/meetings', (req, res, next) => {
+    deleteAllFromDatabase('meetings');
+    res.status(200).send();
+})
 
 
 module.exports = apiRouter;
