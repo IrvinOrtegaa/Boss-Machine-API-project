@@ -1,4 +1,5 @@
 const express = require('express');
+const checkMillionDollarIdea = require('./checkMillionDollarIdea');
 const apiRouter = express.Router();
 const {
     createMeeting,
@@ -91,7 +92,7 @@ apiRouter.get('/ideas/:ideaId', (req, res, next) => {
     }
 })
 
-apiRouter.post('/ideas', (req, res, next) => {
+apiRouter.post('/ideas', checkMillionDollarIdea, (req, res, next) => {
     const { name, description, numWeeks, weeklyRevenue } = req.body;
     const newIdea = {
         name: name,
